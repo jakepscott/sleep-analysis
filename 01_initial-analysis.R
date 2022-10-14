@@ -91,7 +91,8 @@ df %>%
   geom_tile(aes(x = day_of_month, y = fct_rev(month), fill = as.numeric(hours))) +
   # Add viridis colors
   scale_fill_viridis_c(option = "inferno") + 
-  scale_x_continuous(breaks=seq(1,31,by=2)) +
+  scale_x_continuous(breaks=seq(1,31,by=2),
+                     expand = expansion(c(0,0))) +
   # Force all the tiles to have equal widths and heights
   coord_equal() +
   # Add nice labels
