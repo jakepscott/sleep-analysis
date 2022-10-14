@@ -36,7 +36,15 @@ df <- df_raw %>%
                            T ~ difftime(wake_test, sleep_test))) %>%
   select(-contains("first")) %>% 
   mutate(avg_sleep = rollmean(hours, k = 7, align = "right", fill = NA),
-         year = year(date))
+         year = year(date),
+         day_of_week = weekdays(date),
+         day_of_week = factor(day_of_week,
+                      levels = c("Monday","Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+         day_of_month = day(date),
+         month = month(date),
+         month = factor(month,
+                        levels = c(1:12),
+                        labels = month.name))
 
 
 # Simple plot -------------------------------------------------------------
@@ -68,3 +76,49 @@ df %>%
   ggplot(aes(date, diff_from_8)) +
   geom_col(aes(fill = diff_from_8 > 0))
 
+
+# by day of week ----------------------------------------------------------
+df %>% 
+  group_by(day) %>% 
+  summarise(mean = mean(hours)) %>% 
+  ggplot(aes(day, mean)) +
+  geom_col()
+
+
+# 2022 heatmap ------------------------------------------------------------
+df %>% 
+  ggplot() +
+  geom_tile(aes(x = day_of_month, y = fct_rev(month), fill = as.numeric(hours))) +
+  # Add viridis colors
+  scale_fill_viridis_c(option = "inferno") + 
+  scale_x_continuous(breaks=seq(1,31,by=2)) +
+  # Force all the tiles to have equal widths and heights
+  coord_equal() +
+  # Add nice labels
+  labs(x = "Day of the month", y = NULL,
+       title = "Hours of Sleep per Night",
+       fill = "Hours of \nsleep",
+       caption = "Plot: @jakepscott2020") +
+  facet_wrap(~year, ncol=1) +
+  # Use a cleaner theme
+  theme_minimal(base_family = "Roboto Condensed", base_size = 12) +
+  theme(panel.grid = element_blank(),
+        # Bold, bigger title
+        plot.title = element_text(face = "bold", size = rel(1.2)),
+        # Plain, slightly bigger subtitle that is grey
+        plot.subtitle = element_text(face = "plain", size = rel(.9), color = "grey70"),
+        # Italic, smaller, grey caption that is left-aligned
+        plot.caption = element_text(face = "italic", size = rel(0.9), 
+                                    color = "grey70"),
+        # Bold legend titles
+        legend.title = element_text(size = rel(.8)),
+        # Bold, slightly larger facet titles that are left-aligned for the sake of repetition
+        strip.text = element_text(face = "bold", size = rel(.7), hjust = 0),
+        strip.background.x = element_blank(),
+        axis.title = element_blank(),
+        # Add a light grey background to the facet titles, with no borders
+        strip.background = element_blank(),
+        # Add a thin grey border around all the plots to tie in the facet titles
+        panel.border = element_rect(color = "grey90", fill = NA),
+        plot.title.position = "plot",
+        legend.key = element_rect(fill = "white", colour = "white"))
