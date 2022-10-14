@@ -79,9 +79,9 @@ df %>%
 
 # by day of week ----------------------------------------------------------
 df %>% 
-  group_by(day) %>% 
+  group_by(day_of_week) %>% 
   summarise(mean = mean(hours)) %>% 
-  ggplot(aes(day, mean)) +
+  ggplot(aes(day_of_week, mean)) +
   geom_col()
 
 
